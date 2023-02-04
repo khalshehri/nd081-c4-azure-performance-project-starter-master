@@ -108,7 +108,7 @@ def index():
 
             # Insert vote result into DB
             vote = request.form['vote']
-            r.incr(vote,1)
+            votes = r.incr(vote,1)
 
             # log current vote
             properties = {'custom_dimensions': {f'{vote}': votes}}
