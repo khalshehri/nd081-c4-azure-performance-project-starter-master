@@ -17,11 +17,11 @@ from opencensus.stats import stats as stats_module
 from opencensus.stats import view as view_module
 from opencensus.tags import tag_map as tag_map_module
 from opencensus.ext.azure.trace_exporter import AzureExporter
-from opencensus.trace import config_integration
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 from opencensus.ext.azure.log_exporter import AzureEventHandler
+
 
 app_insught_intrumentation_key = 'eb12e560-9ccb-4415-8ee5-8c6d18e4cd90'
 
@@ -61,8 +61,19 @@ if ("TITLE" in os.environ and os.environ['TITLE']):
 else:
     title = app.config['TITLE']
 
-# Redis Connection
-r = redis.Redis()
+redis_server = os.environ['REDIS']
+
+# Redis Connection to another container
+try:
+    if "REDIS_PWD" in os.environ:
+        r = redis.StrictRedis(host=redis_server,
+                            port=6379,
+                           password=os.environ['REDIS_PWD'])
+    else:
+        r = redis.Redis(redis_server)
+    r.ping()
+except redis.ConnectionError:
+    exit('Failed to connect to Redis, terminating.')
 
 # Change title to host name to demo NLB
 if app.config['SHOWHOST'] == "true":
@@ -80,10 +91,10 @@ def index():
         # Get current values
         vote1 = r.get(button1).decode('utf-8')
         # TODO: use tracer object to trace cat vote
-        tracer.span("Cat Vote")
+        tracer.span(name='Cats Vote')
         vote2 = r.get(button2).decode('utf-8')
         # TODO: use tracer object to trace dog vote
-        tracer.span("Dog Vote")
+        tracer.span(name='Dog Vote')
 
         # Return index with values
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
@@ -107,18 +118,20 @@ def index():
 
         else:
 
-            # Insert vote result into DB
+  # Insert vote result into DB
             vote = request.form['vote']
-            votes = r.incr(vote,1)
-
-            # log current vote
-            properties = {'custom_dimensions': {f'{vote}': votes}}
-            logger.info(f"Vote for {vote}", extra=properties)
+            r.incr(vote,1)
 
             # Get current values
             vote1 = r.get(button1).decode('utf-8')
+            tracer.span(name='Cats Vote')
+            logger.info('This is a vote for Cats!')
+            
             vote2 = r.get(button2).decode('utf-8')
+            tracer.span(name='Dogs Vote'):
+            logger.info('This is a vote for Dogs!')
 
+            
             # Return results
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
