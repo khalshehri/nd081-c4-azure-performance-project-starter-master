@@ -23,7 +23,7 @@ from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 from opencensus.ext.azure.log_exporter import AzureEventHandler
 
 
-app_insught_intrumentation_key = 'eb12e560-9ccb-4415-8ee5-8c6d18e4cd90'
+app_insught_intrumentation_key = '6d5e05b3-5e15-4256-9909-8f42d6b663fa'
 
 
 # Logging
