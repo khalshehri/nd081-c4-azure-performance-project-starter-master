@@ -117,7 +117,7 @@ def index():
             logger.info('This is a vote for Cats!')
             
             vote2 = r.get(button2).decode('utf-8')
-            tracer.span(name='Dogs Vote'):
+            tracer.span(name='Dogs Vote')
             logger.info('This is a vote for Dogs!')
 
             
